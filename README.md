@@ -50,7 +50,7 @@ src/
 
 ## Tech Stack
 
-- [Next.js 14](https://nextjs.org/)
+- [Next.js 15](https://nextjs.org/)
 - [NextAuth.js](https://next-auth.js.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Framer Motion](https://www.motion.dev)
