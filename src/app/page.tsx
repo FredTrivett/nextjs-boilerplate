@@ -1,9 +1,13 @@
-import SignIn from "@/components/signin"
+import { auth } from '@/auth'
+import HomeClient from '@/components/home-client'
+import { Nav } from '@/components/nav'
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
   return (
-    <div>
-      <SignIn />
-    </div>
-  );
+    <>
+      <Nav />
+      <HomeClient session={session} />
+    </>
+  )
 }
