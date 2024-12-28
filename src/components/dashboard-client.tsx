@@ -2,6 +2,9 @@
 
 import { motion } from "framer-motion"
 import SignOutButton from "./sign-out-button"
+import { useSupabase } from "@/hooks/use-supabase"
+import { useEffect, useState } from "react"
+import type { User } from "@/types/supabase"
 
 interface DashboardClientProps {
     userName?: string | null
@@ -9,6 +12,27 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
+    const { supabase } = useSupabase()
+    const [userData, setUserData] = useState<User | null>(null)
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', userEmail)
+                .single()
+
+            if (!error && data) {
+                setUserData(data)
+            }
+        }
+
+        if (userEmail) {
+            fetchUserData()
+        }
+    }, [supabase, userEmail])
+
     return (
         <main className="relative min-h-screen">
             <div className="fixed inset-0 bg-gradient-radial from-zinc-800/30 to-zinc-900/90" />
@@ -32,8 +56,13 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                     className="space-y-6"
                 >
                     <div className="vision-panel p-6">
-                        <h2 className="vision-text text-xl font-medium mb-2">Welcome, {userName}!</h2>
-                        <p className="text-zinc-400">{userEmail}</p>
+                        <h2 className="vision-text text-xl font-medium mb-2">
+                            Welcome, {userData?.name || userName}!
+                        </h2>
+                        <p className="text-zinc-400">{userData?.email || userEmail}</p>
+                        <p className="text-zinc-500 text-sm mt-2">
+                            Member since {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'N/A'}
+                        </p>
                     </div>
                 </motion.div>
             </div>

@@ -1,12 +1,34 @@
 import { auth } from "./auth"
 import { NextResponse } from "next/server"
+import { createClient } from '@/lib/supabase/server'
 
-export default auth((req) => {
-    const isLoggedIn = !!req.auth
+export default auth(async (req) => {
+    const session = req.auth
+    const isLoggedIn = !!session
     const isOnDashboard = req.nextUrl.pathname.startsWith('/dashboard')
 
     if (isOnDashboard && !isLoggedIn) {
-        return NextResponse.redirect(new URL('/signin', req.url))
+        return NextResponse.redirect(new URL('/', req.url))
+    }
+
+    if (isLoggedIn && session.user) {
+        const supabase = await createClient()
+
+        try {
+            const { error } = await supabase.from('users').upsert({
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.name,
+                avatar_url: session.user.image,
+                updated_at: new Date().toISOString(),
+            }, {
+                onConflict: 'id'
+            })
+
+            if (error) console.error('Error syncing user:', error)
+        } catch (error) {
+            console.error('Error in middleware:', error)
+        }
     }
 
     return NextResponse.next()
