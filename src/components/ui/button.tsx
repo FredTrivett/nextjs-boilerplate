@@ -38,11 +38,11 @@ const buttonVariants = cva(
         danger: [
           "bg-red-500/10 backdrop-blur-sm border border-red-500/20",
           "hover:bg-red-500/20 hover:border-red-500/30",
-          "active:scale-[0.98]",
           "disabled:opacity-50 disabled:pointer-events-none",
           "text-white shadow-lg",
           "group",
           "px-6",
+          "transform-none",
         ].join(" "),
         outline: [
           "bg-zinc-900/80 backdrop-blur-sm border border-zinc-700",
@@ -83,11 +83,12 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, fullWidth, asChild = false, icon, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    const isDanger = variant === 'danger'
 
     return (
       <motion.div
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: isDanger ? 1 : 1.01 }}
+        whileTap={{ scale: isDanger ? 1 : 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
         <Comp
