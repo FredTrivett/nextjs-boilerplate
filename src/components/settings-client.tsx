@@ -62,16 +62,34 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
         if (!userId || !name.trim()) return
 
         setIsSaving(true)
-        const { error } = await supabase
-            .from('users')
-            .update({ name: name.trim(), updated_at: new Date().toISOString() })
-            .eq('id', userId)
+        try {
+            const response = await fetch('/api/user/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name.trim() })
+            })
 
-        if (!error) {
-            router.refresh()
-            setIsEditing(false)
+            const data = await response.json()
+
+            if (!response.ok) {
+                console.error('Server response:', data)
+                throw new Error(data.error || 'Failed to update name')
+            }
+
+            if (data.user) {
+                setUserData(data.user)
+                setName(data.user.name || '')
+                setIsEditing(false)
+                router.refresh()
+            }
+        } catch (error: any) {
+            console.error('Error updating name:', error)
+            alert(error.message || 'Failed to update name. Please try again.')
+        } finally {
+            setIsSaving(false)
         }
-        setIsSaving(false)
     }
 
     const handleDeleteAccount = async () => {
@@ -227,7 +245,12 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                                         placeholder="Enter your display name"
                                     />
                                     <Button
-                                        onClick={() => setIsEditing(!isEditing)}
+                                        onClick={() => {
+                                            if (isEditing) {
+                                                setName(userData?.name || userName || '')
+                                            }
+                                            setIsEditing(!isEditing)
+                                        }}
                                         variant="primary"
                                     >
                                         {isEditing ? 'Cancel' : 'Change'}

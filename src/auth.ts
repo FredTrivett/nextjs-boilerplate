@@ -12,28 +12,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (account?.provider === "google") {
                 const supabase = await createClient()
 
-                // Check if user exists in Supabase
-                const { data: existingUser } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', user.email)
-                    .single()
-
-                if (!existingUser) {
-                    // Create new user in Supabase
-                    const { error } = await supabase.from('users').insert({
-                        id: user.id,
-                        email: user.email,
-                        name: user.name,
-                        avatar_url: user.image,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                    })
+                try {
+                    // Upsert the user
+                    const { error } = await supabase
+                        .from('users')
+                        .upsert({
+                            id: user.id,
+                            email: user.email,
+                            name: user.name,
+                            avatar_url: user.image,
+                            updated_at: new Date().toISOString(),
+                        }, {
+                            onConflict: 'id',
+                            ignoreDuplicates: false
+                        })
 
                     if (error) {
-                        console.error('Error creating user:', error)
+                        console.error('Error upserting user:', error)
                         return false
                     }
+
+                    return true
+                } catch (error) {
+                    console.error('Error in signIn callback:', error)
+                    return false
                 }
             }
             return true

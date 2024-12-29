@@ -38,30 +38,34 @@ interface OnboardingModalProps {
 export function OnboardingModal({ userId }: OnboardingModalProps) {
     const [isOpen, setIsOpen] = useState(true)
     const [currentStep, setCurrentStep] = useState(0)
+    const [isCompleting, setIsCompleting] = useState(false)
     const { supabase } = useSupabase()
     const router = useRouter()
 
     const handleComplete = async () => {
+        setIsCompleting(true)
         try {
-            if (!userId) return
+            const response = await fetch('/api/user/onboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
 
-            const { error } = await supabase
-                .from('users')
-                .update({
-                    is_onboarded: true,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId)
+            const data = await response.json()
 
-            if (error) {
-                console.error('Error updating onboarding status:', error)
-                return
+            if (!response.ok) {
+                console.error('Failed to complete onboarding:', data)
+                throw new Error(data.error || 'Failed to complete onboarding')
             }
 
-            setIsOpen(false)
+            setIsOpen(false)  // Close the modal after successful update
             router.refresh()
         } catch (error) {
-            console.error('Error in handleComplete:', error)
+            console.error('Error completing onboarding:', error)
+            alert('Failed to complete onboarding. Please try again.')
+        } finally {
+            setIsCompleting(false)
         }
     }
 
@@ -119,15 +123,15 @@ export function OnboardingModal({ userId }: OnboardingModalProps) {
                             ))}
                         </div>
 
-                        <div className="flex justify-between items-center">
-                            {currentStep > 0 ? (
+                        <div className="mt-6 flex justify-between">
+                            {currentStep > 0 && (
                                 <Button
                                     onClick={() => setCurrentStep(prev => prev - 1)}
-                                    variant="ghost"
+                                    variant="secondary"
                                 >
                                     Previous
                                 </Button>
-                            ) : <div />}
+                            )}
                             <Button
                                 onClick={() => {
                                     if (currentStep === steps.length - 1) {
@@ -136,8 +140,14 @@ export function OnboardingModal({ userId }: OnboardingModalProps) {
                                         setCurrentStep(prev => prev + 1)
                                     }
                                 }}
+                                disabled={isCompleting}
                             >
-                                {currentStep === steps.length - 1 ? "Get Started" : "Next"}
+                                {isCompleting
+                                    ? 'Completing...'
+                                    : currentStep === steps.length - 1
+                                        ? 'Get Started'
+                                        : 'Next'
+                                }
                             </Button>
                         </div>
                     </div>

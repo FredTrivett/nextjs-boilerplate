@@ -83,26 +83,19 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, fullWidth, asChild = false, icon, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
-    const isDanger = variant === 'danger'
 
     return (
-      <motion.div
-        whileHover={{ scale: isDanger ? 1 : 1.01 }}
-        whileTap={{ scale: isDanger ? 1 : 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      <Comp
+        className={cn(buttonVariants({ variant, size, fullWidth, className }))}
+        ref={ref}
+        {...props}
       >
-        <Comp
-          className={cn(buttonVariants({ variant, size, fullWidth, className }))}
-          ref={ref}
-          {...props}
-        >
-          {icon && <span className="mr-2">{icon}</span>}
-          {children}
-          <div className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 to-transparent blur-md" />
-          </div>
-        </Comp>
-      </motion.div>
+        {icon && <span className="mr-2">{icon}</span>}
+        {children}
+        <div className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-white/10 to-transparent blur-md" />
+        </div>
+      </Comp>
     )
   }
 )

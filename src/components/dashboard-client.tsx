@@ -18,6 +18,7 @@ export function DashboardClient({ userName, userEmail, userId }: DashboardClient
     const { supabase } = useSupabase()
     const [userData, setUserData] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [showOnboarding, setShowOnboarding] = useState(true)
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -55,16 +56,29 @@ export function DashboardClient({ userName, userEmail, userId }: DashboardClient
         fetchUserData()
     }, [supabase, userId])
 
-    if (isLoading) return null
+    useEffect(() => {
+        const checkOnboardingStatus = async () => {
+            if (!userId) return
 
-    const showOnboarding = userData && userData.is_onboarded === false
-    console.log('Should show onboarding:', showOnboarding)
+            const { data, error } = await supabase
+                .from('users')
+                .select('is_onboarded')
+                .eq('id', userId)
+                .single()
+
+            if (!error && data) {
+                setShowOnboarding(!data.is_onboarded)
+            }
+        }
+
+        checkOnboardingStatus()
+    }, [supabase, userId])
+
+    if (isLoading) return null
 
     return (
         <>
-            {showOnboarding && userId && (
-                <OnboardingModal userId={userId} />
-            )}
+            {showOnboarding && <OnboardingModal userId={userId!} />}
 
             <div className="flex justify-between items-center mb-12">
                 <motion.h1

@@ -27,8 +27,8 @@ export default auth(async (req) => {
                     is_onboarded: false,  // Only set this if it's a new record
                     is_deleted: false
                 }, {
-                    onConflict: 'email',  // Specify the conflict column
-                    ignoreDuplicates: true // Ignore if record exists
+                    onConflict: 'id',  // Changed from 'email' to 'id'
+                    ignoreDuplicates: false
                 })
 
             if (error) throw error
