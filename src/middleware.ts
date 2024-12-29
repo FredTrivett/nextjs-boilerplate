@@ -15,14 +15,7 @@ export default auth(async (req) => {
         const supabase = await createClient()
 
         try {
-            // First check if user exists
-            const { data: existingUser } = await supabase
-                .from('users')
-                .select('id, is_onboarded')
-                .eq('id', session.user.id)
-                .single()
-
-            // Set is_onboarded to false for new users
+            // Upsert the user record
             const { error } = await supabase
                 .from('users')
                 .upsert({
@@ -31,17 +24,14 @@ export default auth(async (req) => {
                     name: session.user.name,
                     avatar_url: session.user.image,
                     updated_at: new Date().toISOString(),
-                    is_onboarded: existingUser?.is_onboarded ?? false,
+                    is_onboarded: false,  // Only set this if it's a new record
                     is_deleted: false
                 }, {
-                    onConflict: 'id',
-                    ignoreDuplicates: false
+                    onConflict: 'email',  // Specify the conflict column
+                    ignoreDuplicates: true // Ignore if record exists
                 })
 
-            if (error) {
-                console.error('Error syncing user:', error)
-                throw error
-            }
+            if (error) throw error
         } catch (error) {
             console.error('Error in middleware:', error)
         }
