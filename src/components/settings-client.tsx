@@ -105,7 +105,7 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
 
     return (
         <>
-            <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-10 mb-6">
                 <Link href="/dashboard" passHref>
                     <Button
                         variant="secondary"
