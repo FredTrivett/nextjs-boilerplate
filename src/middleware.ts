@@ -12,7 +12,6 @@ export default auth(async (req) => {
     }
 
     if (isLoggedIn && session.user) {
-        // Use service role client for middleware operations
         const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -36,7 +35,7 @@ export default auth(async (req) => {
                     is_deleted: false
                 }, {
                     onConflict: 'id',
-                    ignoreDuplicates: true  // Changed to true to prevent overwriting existing data
+                    ignoreDuplicates: true
                 })
 
             if (error) {
