@@ -1,6 +1,6 @@
 import { auth } from "./auth"
 import { NextResponse } from "next/server"
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default auth(async (req) => {
     const session = req.auth
@@ -12,10 +12,19 @@ export default auth(async (req) => {
     }
 
     if (isLoggedIn && session.user) {
-        const supabase = await createClient()
+        // Use service role client for middleware operations
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!,
+            {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            }
+        )
 
         try {
-            // Upsert the user record
             const { error } = await supabase
                 .from('users')
                 .upsert({
@@ -24,14 +33,15 @@ export default auth(async (req) => {
                     name: session.user.name,
                     avatar_url: session.user.image,
                     updated_at: new Date().toISOString(),
-                    is_onboarded: false,  // Only set this if it's a new record
                     is_deleted: false
                 }, {
-                    onConflict: 'id',  // Changed from 'email' to 'id'
-                    ignoreDuplicates: false
+                    onConflict: 'id',
+                    ignoreDuplicates: true  // Changed to true to prevent overwriting existing data
                 })
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase error in middleware:', error)
+            }
         } catch (error) {
             console.error('Error in middleware:', error)
         }
@@ -40,7 +50,6 @@ export default auth(async (req) => {
     return NextResponse.next()
 })
 
-// Optionally configure middleware to only run on specific paths
 export const config = {
     matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
