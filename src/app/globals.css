@@ -127,3 +127,10 @@ body {
 * {
     @apply focus:outline-none focus:ring-0;
 }
+
+/* New class for alert dialogs */
+.alert-dialog {
+    width: 95vw;
+    height: fit-content;
+    max-width: 500px;
+}

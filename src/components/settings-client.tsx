@@ -93,7 +93,7 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
     }
 
     const handleDeleteAccount = async () => {
-        if (confirmText !== expectedText || !userId) return
+        if (confirmText.toLowerCase() !== expectedText) return
 
         setIsDeleting(true)
         try {
@@ -105,19 +105,19 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
             })
 
             const data = await response.json()
-            console.log('Delete response:', data)
 
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to delete account')
             }
 
-            await signOut({ redirect: false })
+            // Close dialog and sign out
             setShowDeleteDialog(false)
-            router.push('/')
+            await signOut({ callbackUrl: '/' })
         } catch (error: any) {
             console.error('Error deleting account:', error)
-            setIsDeleting(false)
             alert(error.message || 'Failed to delete account')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -136,7 +136,7 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                 <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="vision-text text-4xl font-medium"
+                    className="vision-text text-4xl font-medium pb-1"
                 >
                     Settings
                 </motion.h1>
@@ -299,27 +299,31 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                                 </p>
 
                                 <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                                    <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle className="vision-text">
+                                    <AlertDialogContent className="alert-dialog border border-white/10 bg-black/80 p-8 backdrop-blur-2xl rounded-3xl">
+                                        <AlertDialogHeader className="space-y-4">
+                                            <AlertDialogTitle className="vision-text text-2xl font-medium">
                                                 Delete Account
                                             </AlertDialogTitle>
                                             <AlertDialogDescription asChild>
-                                                <div className="text-zinc-400">
-                                                    This action cannot be undone. Your account will be permanently deleted
-                                                    and you will lose access to all your data.
+                                                <div className="space-y-6">
+                                                    <p className="text-zinc-400">
+                                                        This action cannot be undone. Your account will be permanently deleted
+                                                        and you will lose access to all your data.
+                                                    </p>
 
-                                                    <div className="mt-4 space-y-2">
-                                                        <div className="text-sm">
-                                                            Please type <span className="font-mono text-zinc-300 select-none">{expectedText}</span> to confirm:
+                                                    <div className="space-y-3">
+                                                        <div className="text-sm text-zinc-400">
+                                                            Please type <span className="font-mono text-white">{expectedText}</span> to confirm:
                                                         </div>
                                                         <input
                                                             type="text"
                                                             value={confirmText}
                                                             onChange={(e) => setConfirmText(e.target.value)}
-                                                            className="w-full bg-black/20 border-0 rounded-lg px-4 py-3 text-white 
-                                                            focus:outline-none focus:ring-1 focus:ring-white/20 transition-all
-                                                            placeholder-zinc-500"
+                                                            className={cn(
+                                                                "w-full bg-black/20 border rounded-lg px-4 py-3 text-white transition-all",
+                                                                "focus:outline-none focus:ring-1 focus:ring-white/20",
+                                                                "placeholder-zinc-500"
+                                                            )}
                                                             placeholder="Type confirmation text"
                                                             spellCheck={false}
                                                             autoComplete="off"
@@ -328,13 +332,15 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                                                 </div>
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
-                                        <AlertDialogFooter>
+
+                                        <div className="mt-8 flex justify-end gap-4">
                                             <Button
                                                 onClick={() => {
                                                     setConfirmText("")
                                                     setShowDeleteDialog(false)
                                                 }}
                                                 variant="secondary"
+                                                className="focus:outline-none focus:ring-0"
                                             >
                                                 Cancel
                                             </Button>
@@ -342,10 +348,11 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                                                 onClick={handleDeleteAccount}
                                                 disabled={confirmText.toLowerCase() !== expectedText || isDeleting}
                                                 variant="danger"
+                                                className="focus:outline-none focus:ring-0"
                                             >
                                                 {isDeleting ? 'Deleting...' : 'Delete Account'}
                                             </Button>
-                                        </AlertDialogFooter>
+                                        </div>
                                     </AlertDialogContent>
                                 </AlertDialog>
                             </div>

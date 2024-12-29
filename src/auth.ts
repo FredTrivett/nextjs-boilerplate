@@ -16,15 +16,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 )
 
                 try {
-                    // First check if user exists by email
+                    // Check if user exists and is not deleted
                     const { data: existingUser } = await supabase
                         .from('users')
                         .select('*')
                         .eq('email', user.email)
+                        .eq('is_deleted', false)
                         .single()
 
                     if (existingUser) {
-                        // If user exists, just update their details
+                        // Update existing user
                         const { error: updateError } = await supabase
                             .from('users')
                             .update({
@@ -39,10 +40,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             return false
                         }
 
-                        // Set the user ID to match the existing record
                         user.id = existingUser.id
+                        return true
                     } else {
-                        // If user doesn't exist, create new user
+                        // Create new user
                         const { error: insertError } = await supabase
                             .from('users')
                             .insert({
@@ -50,16 +51,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 email: user.email,
                                 name: user.name,
                                 avatar_url: user.image,
-                                updated_at: new Date().toISOString()
+                                updated_at: new Date().toISOString(),
+                                is_deleted: false
                             })
 
                         if (insertError) {
                             console.error('Error creating user:', insertError)
                             return false
                         }
+                        return true
                     }
-
-                    return true
                 } catch (error) {
                     console.error('Error in signIn callback:', error)
                     return false

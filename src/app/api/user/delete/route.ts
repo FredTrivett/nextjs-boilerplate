@@ -9,20 +9,25 @@ export async function POST() {
     }
 
     try {
-        // Create a Supabase admin client
         const supabaseAdmin = createServiceClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         )
 
-        // First update the user record
+        // Generate a unique identifier for the deleted email
+        const timestamp = Date.now()
+        const uniqueId = Math.random().toString(36).substring(2, 15)
+        const deletedEmail = `deleted_${timestamp}_${uniqueId}_${session.user.email}`
+
+        // Update the user record to mark as deleted
         const { error: updateError } = await supabaseAdmin
             .from('users')
             .update({
                 is_deleted: true,
                 deleted_at: new Date().toISOString(),
-                email: `deleted_${Date.now()}_${session.user.email}`,
-                name: 'Deleted User'
+                email: deletedEmail,
+                name: 'Deleted User',
+                avatar_url: null
             })
             .eq('id', session.user.id)
 
@@ -32,25 +37,6 @@ export async function POST() {
                 { error: 'Failed to update user record' },
                 { status: 500 }
             )
-        }
-
-        // Delete the auth user using the REST API
-        const deleteResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/admin/users/${session.user.id}`,
-            {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY!,
-                    'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-                }
-            }
-        )
-
-        if (!deleteResponse.ok) {
-            const errorData = await deleteResponse.json().catch(() => ({}))
-            console.error('Delete user response:', deleteResponse.status, errorData)
-            throw new Error('Failed to delete auth user')
         }
 
         return NextResponse.json({ success: true })
