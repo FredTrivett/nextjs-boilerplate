@@ -2,10 +2,26 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-export const useSupabase = () => {
+export function useSupabase() {
     const [supabase] = useState(() => createClient())
+    const [loading, setLoading] = useState(true)
 
-    return { supabase }
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession()
+                if (error) throw error
+                setLoading(false)
+            } catch (error) {
+                console.error('Error checking session:', error)
+                setLoading(false)
+            }
+        }
+
+        checkSession()
+    }, [supabase])
+
+    return { supabase, loading }
 } 

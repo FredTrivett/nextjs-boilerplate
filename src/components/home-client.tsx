@@ -3,22 +3,24 @@
 import { motion } from 'framer-motion'
 import { Session } from 'next-auth'
 import { useRouter } from 'next/navigation'
-import { AuthModal } from './auth-modal'
+import { AuthModal } from '@/components/auth-modal'
+import { Button } from '@/components/ui/button'
 
 export default function HomeClient({ session }: { session: Session | null }) {
     const router = useRouter()
 
     const renderAuthButton = (authMode: 'signin' | 'signup') => (
         authMode === 'signin' ? (
-            <button className="vision-button group !bg-transparent !border-0">
-                <span className="vision-glow" />
-                <span className="relative text-sm text-zinc-400 hover:text-white">Sign In →</span>
-            </button>
+            <Button
+                variant="secondary"
+                size="default"
+            >
+                Sign In →
+            </Button>
         ) : (
-            <button className="vision-button group">
-                <span className="vision-glow" />
-                <span className="relative">Get Started</span>
-            </button>
+            <Button variant="primary">
+                Get Started
+            </Button>
         )
     )
 
@@ -53,13 +55,12 @@ export default function HomeClient({ session }: { session: Session | null }) {
                     className="mt-10 flex items-center justify-center gap-6"
                 >
                     {session ? (
-                        <button
+                        <Button
                             onClick={() => router.push('/dashboard')}
-                            className="vision-button group"
+                            variant="primary"
                         >
-                            <span className="vision-glow" />
-                            <span className="relative">Enter Dashboard</span>
-                        </button>
+                            Enter Dashboard
+                        </Button>
                     ) : (
                         <>
                             <AuthModal variant="signup" trigger={renderAuthButton('signup')} />

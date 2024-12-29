@@ -2,7 +2,7 @@
 
 import { signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 
 export default function SignOutButton() {
     const router = useRouter()
@@ -16,10 +16,9 @@ export default function SignOutButton() {
     return (
         <Button
             onClick={handleSignOut}
-            variant="outline"
-            className="vision-button group"
+            variant="primary"
+            className="group"
         >
-            <span className="vision-glow" />
             <span className="relative">Sign Out</span>
         </Button>
     )

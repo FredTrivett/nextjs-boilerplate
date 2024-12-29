@@ -19,12 +19,8 @@ export function AuthModal({ trigger, variant = 'signup' }: AuthModalProps) {
             <DialogTrigger asChild>
                 {trigger}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                >
+            <DialogContent className="bg-black border border-zinc-800 shadow-2xl">
+                <div className="flex flex-col items-center space-y-8">
                     <DialogHeader>
                         <DialogTitle className="vision-text text-3xl font-medium text-center">
                             {variant === 'signin' ? 'Welcome Back' : 'Welcome to Vision'}
@@ -39,11 +35,11 @@ export function AuthModal({ trigger, variant = 'signup' }: AuthModalProps) {
 
                     <div className="mt-8">
                         <Button
-                            variant="outline"
-                            className="relative group w-full"
+                            variant="ghost"
+                            className="relative w-full"
                             onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
                         >
-                            <span className="vision-glow" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/50 to-zinc-900/0 rounded-lg" />
                             <span className="relative flex items-center gap-2">
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                     <path
@@ -67,7 +63,7 @@ export function AuthModal({ trigger, variant = 'signup' }: AuthModalProps) {
                             </span>
                         </Button>
                     </div>
-                </motion.div>
+                </div>
             </DialogContent>
         </Dialog>
     )

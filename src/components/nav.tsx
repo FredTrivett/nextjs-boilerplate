@@ -2,9 +2,9 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { AuthModal } from './auth-modal'
+import { AuthModal } from '@/components/auth-modal'
 import { useSession } from 'next-auth/react'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
 export function Nav() {
@@ -13,15 +13,16 @@ export function Nav() {
 
     const renderAuthButton = (authMode: 'signin' | 'signup') => (
         authMode === 'signin' ? (
-            <button className="vision-button group !bg-transparent !border-0">
-                <span className="vision-glow" />
-                <span className="relative text-sm text-zinc-400 hover:text-white">Sign In</span>
-            </button>
+            <Button
+                variant="secondary"
+                size="default"
+            >
+                Sign In
+            </Button>
         ) : (
-            <button className="vision-button group">
-                <span className="vision-glow" />
-                <span className="relative">Get Started</span>
-            </button>
+            <Button variant="primary">
+                Get Started
+            </Button>
         )
     )
 
@@ -40,10 +41,9 @@ export function Nav() {
                 {session ? (
                     <Button
                         onClick={() => router.push('/dashboard')}
-                        className="vision-button group"
+                        variant="primary"
                     >
-                        <span className="vision-glow" />
-                        <span className="relative">Dashboard</span>
+                        Dashboard
                     </Button>
                 ) : (
                     <div className="flex items-center gap-4">

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
     return (
@@ -19,9 +20,10 @@ export default function NotFound() {
                         This reality doesn't exist... yet
                     </p>
 
-                    <Link href="/" className="vision-button group inline-flex">
-                        <span className="vision-glow" />
-                        <span className="relative">Return Home</span>
+                    <Link href="/" passHref>
+                        <Button variant="primary">
+                            Return Home
+                        </Button>
                     </Link>
                 </motion.div>
             </div>
