@@ -106,3 +106,24 @@ body {
 .fixed-size-dialog [role="dialog"] {
     padding: 0 !important;
 }
+
+/* Remove focus outlines */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Remove dialog focus styles */
+[role="dialog"] {
+    outline: none !important;
+}
+
+/* Optional: Add custom focus styles for accessibility */
+:focus-visible {
+    outline: none;
+    @apply ring-offset-0;
+}
+
+/* Or alternatively, remove focus rings globally */
+* {
+    @apply focus:outline-none focus:ring-0;
+}

@@ -123,32 +123,45 @@ export function OnboardingModal({ userId }: OnboardingModalProps) {
                             ))}
                         </div>
 
-                        <div className="mt-6 flex justify-between">
-                            {currentStep > 0 && (
-                                <Button
-                                    onClick={() => setCurrentStep(prev => prev - 1)}
-                                    variant="secondary"
-                                >
-                                    Previous
-                                </Button>
+                        <div className="mt-6 flex w-full">
+                            {currentStep > 0 ? (
+                                <div className="flex justify-between w-full gap-4">
+                                    <Button
+                                        onClick={() => setCurrentStep(prev => prev - 1)}
+                                        variant="secondary"
+                                        className="focus:outline-none focus:ring-0"
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            if (currentStep === steps.length - 1) {
+                                                handleComplete()
+                                            } else {
+                                                setCurrentStep(prev => prev + 1)
+                                            }
+                                        }}
+                                        disabled={isCompleting}
+                                        className="focus:outline-none focus:ring-0"
+                                    >
+                                        {isCompleting
+                                            ? 'Completing...'
+                                            : currentStep === steps.length - 1
+                                                ? 'Get Started'
+                                                : 'Next'
+                                        }
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex justify-end w-full">
+                                    <Button
+                                        onClick={() => setCurrentStep(prev => prev + 1)}
+                                        className="focus:outline-none focus:ring-0"
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
                             )}
-                            <Button
-                                onClick={() => {
-                                    if (currentStep === steps.length - 1) {
-                                        handleComplete()
-                                    } else {
-                                        setCurrentStep(prev => prev + 1)
-                                    }
-                                }}
-                                disabled={isCompleting}
-                            >
-                                {isCompleting
-                                    ? 'Completing...'
-                                    : currentStep === steps.length - 1
-                                        ? 'Get Started'
-                                        : 'Next'
-                                }
-                            </Button>
                         </div>
                     </div>
                 </motion.div>

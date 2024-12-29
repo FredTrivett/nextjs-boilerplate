@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 rounded-full transition-all duration-300 font-medium",
+  "relative inline-flex items-center justify-center gap-2 rounded-full transition-all duration-300 font-medium focus:outline-none focus:ring-0",
   {
     variants: {
       variant: {
@@ -29,11 +29,21 @@ const buttonVariants = cva(
         ].join(" "),
         secondary: [
           "bg-transparent backdrop-blur-sm",
-          "active:scale-[0.98]",
           "disabled:opacity-50 disabled:pointer-events-none",
           "text-white/80 hover:text-white",
           "group",
           "px-0",
+          "border-0",
+          "focus:border-0",
+          "focus:outline-none",
+          "focus:ring-0",
+          "active:border-0",
+          "active:outline-none",
+          "focus-visible:border-0",
+          "focus-visible:ring-0",
+          "focus-visible:outline-none",
+          "!ring-0",
+          "!outline-none",
         ].join(" "),
         danger: [
           "bg-red-500/10 backdrop-blur-sm border border-red-500/20",
