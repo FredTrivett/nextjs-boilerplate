@@ -16,6 +16,12 @@ export default function AuthError() {
                     message: 'This email is associated with a Google account. Please sign in with Google instead.',
                     action: () => signIn('google', { callbackUrl: '/dashboard' })
                 }
+            case 'EmailNotAllowed':
+                return {
+                    title: 'Email Not Allowed',
+                    message: 'During testing, only specific email addresses are allowed. Please use a verified email or contact support.',
+                    action: () => window.location.href = '/'
+                }
             case 'Verification':
                 return {
                     title: 'Verification Failed',

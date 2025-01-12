@@ -19,6 +19,24 @@ export async function POST() {
         const uniqueId = Math.random().toString(36).substring(2, 15)
         const deletedEmail = `deleted_${timestamp}_${uniqueId}_${session.user.email}`
 
+        // Delete all sessions for this user
+        await supabaseAdmin
+            .from('sessions')
+            .delete()
+            .eq('user_id', session.user.id)
+
+        // Delete all OAuth accounts for this user
+        await supabaseAdmin
+            .from('accounts')
+            .delete()
+            .eq('user_id', session.user.id)
+
+        // Delete any verification tokens for this user's email
+        await supabaseAdmin
+            .from('verification_tokens')
+            .delete()
+            .eq('identifier', session.user.email)
+
         // Update the user record to mark as deleted
         const { error: updateError } = await supabaseAdmin
             .from('users')

@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }),
         Resend({
             apiKey: process.env.AUTH_RESEND_KEY,
-            from: "Vision App <onboarding@resend.dev>",
+            from: "Vision App <onboarding@growvy.app>",
             server: process.env.NEXTAUTH_URL,
         })
     ],
@@ -81,18 +81,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // If signing in with email
                 if (account?.provider === "resend" && existingUser) {
-                    // Check if user has a Google account
-                    const { data: googleAccount } = await supabase
-                        .from('accounts')
-                        .select('*')
-                        .eq('user_id', existingUser.id)
-                        .eq('provider', 'google')
-                        .single()
-
-                    if (googleAccount) {
-                        // User exists with Google account, suggest using Google sign-in
-                        return '/auth/error?error=UseGoogleSignIn'
-                    }
+                    // Allow sign in with email even if they have a Google account
+                    // This enables users to use both authentication methods
+                    return true
                 }
 
                 return true
@@ -114,7 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     if (user) {
                         session.user.id = user.id
                         session.user.is_onboarded = user.is_onboarded
-                        
+
                         // Use the provider from the token, which reflects the current sign-in method
                         session.user.provider = token.provider === 'resend' ? 'email' : token.provider
                     }
