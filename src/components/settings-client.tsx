@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import SignOutButton from "@/components/sign-out-button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import {
     AlertDialog,
     AlertDialogContent,
@@ -29,6 +30,7 @@ interface SettingsClientProps {
 
 export function SettingsClient({ userName, userEmail, userId }: SettingsClientProps) {
     const { supabase } = useSupabase()
+    const { data: session } = useSession()
     const [userData, setUserData] = useState<User | null>(null)
     const [name, setName] = useState(userName || '')
     const [isSaving, setIsSaving] = useState(false)
@@ -196,7 +198,9 @@ export function SettingsClient({ userName, userEmail, userId }: SettingsClientPr
                                 </div>
                                 <div>
                                     <p className="text-zinc-500">Auth Method</p>
-                                    <p className="text-zinc-300">Google OAuth</p>
+                                    <p className="text-zinc-300">
+                                        {(session?.user as any)?.provider === 'email' ? 'Email' : 'Google'} OAuth
+                                    </p>
                                 </div>
                             </div>
 

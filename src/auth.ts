@@ -1,78 +1,137 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import Resend from "next-auth/providers/resend"
+import { CustomAdapter } from "./lib/supabase-adapter"
 import { createClient } from '@supabase/supabase-js'
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-    providers: [Google({
-        clientId: process.env.AUTH_GOOGLE_ID,
-        clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    })],
-    callbacks: {
-        async signIn({ user, account }) {
-            if (account?.provider === "google") {
-                const supabase = createClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.SUPABASE_SERVICE_ROLE_KEY!
-                )
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-                try {
-                    // Check if user exists and is not deleted
-                    const { data: existingUser } = await supabase
-                        .from('users')
+export const { handlers, signIn, signOut, auth } = NextAuth({
+    adapter: CustomAdapter(),
+    providers: [
+        Google({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+        }),
+        Resend({
+            apiKey: process.env.AUTH_RESEND_KEY,
+            from: "Vision App <onboarding@resend.dev>",
+            server: process.env.NEXTAUTH_URL,
+        })
+    ],
+    debug: true,
+    pages: {
+        signIn: '/',
+        error: '/auth/error',
+        verifyRequest: '/',
+    },
+    session: {
+        strategy: 'jwt'
+    },
+    callbacks: {
+        async signIn({ user, account, profile, email }) {
+            try {
+                // If this is an email verification
+                if (email?.verificationRequest) {
+                    return true
+                }
+
+                // For both Google and email sign-ins, check if the user is deleted
+                const { data: existingUser } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('email', user.email)
+                    .single()
+
+                if (existingUser?.is_deleted) {
+                    return false // Prevent sign in for deleted accounts
+                }
+
+                // If signing in with Google
+                if (account?.provider === "google" && existingUser) {
+                    // Check if user already has a Google account linked
+                    const { data: googleAccount } = await supabase
+                        .from('accounts')
                         .select('*')
-                        .eq('email', user.email)
-                        .eq('is_deleted', false)
+                        .eq('user_id', existingUser.id)
+                        .eq('provider', 'google')
                         .single()
 
-                    if (existingUser) {
-                        // Update existing user
-                        const { error: updateError } = await supabase
-                            .from('users')
-                            .update({
-                                name: user.name,
-                                avatar_url: user.image,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', existingUser.id)
-
-                        if (updateError) {
-                            console.error('Error updating user:', updateError)
-                            return false
-                        }
-
-                        user.id = existingUser.id
-                        return true
-                    } else {
-                        // Create new user
-                        const { error: insertError } = await supabase
-                            .from('users')
-                            .insert({
-                                id: user.id,
-                                email: user.email,
-                                name: user.name,
-                                avatar_url: user.image,
-                                updated_at: new Date().toISOString(),
-                                is_deleted: false
-                            })
-
-                        if (insertError) {
-                            console.error('Error creating user:', insertError)
-                            return false
-                        }
-                        return true
+                    if (!googleAccount) {
+                        // Link the Google account to the existing user
+                        await supabase.from('accounts').insert({
+                            user_id: existingUser.id,
+                            type: account.type,
+                            provider: account.provider,
+                            provider_account_id: account.providerAccountId,
+                            refresh_token: account.refresh_token,
+                            access_token: account.access_token,
+                            expires_at: account.expires_at,
+                            token_type: account.token_type,
+                            scope: account.scope,
+                            id_token: account.id_token,
+                            session_state: account.session_state
+                        })
                     }
-                } catch (error) {
-                    console.error('Error in signIn callback:', error)
-                    return false
+                    return true
                 }
+
+                // If signing in with email
+                if (account?.provider === "resend" && existingUser) {
+                    // Check if user has a Google account
+                    const { data: googleAccount } = await supabase
+                        .from('accounts')
+                        .select('*')
+                        .eq('user_id', existingUser.id)
+                        .eq('provider', 'google')
+                        .single()
+
+                    if (googleAccount) {
+                        // User exists with Google account, suggest using Google sign-in
+                        return '/auth/error?error=UseGoogleSignIn'
+                    }
+                }
+
+                return true
+            } catch (error) {
+                console.error('Error in signIn callback:', error)
+                return false
             }
-            return true
         },
         async session({ session, token }) {
             if (session?.user) {
-                session.user.id = token.sub as string
+                try {
+                    // Get user data from Supabase
+                    const { data: user } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('email', session.user.email)
+                        .single()
+
+                    if (user) {
+                        session.user.id = user.id
+                        session.user.is_onboarded = user.is_onboarded
+                        
+                        // Use the provider from the token, which reflects the current sign-in method
+                        session.user.provider = token.provider === 'resend' ? 'email' : token.provider
+                    }
+                } catch (error) {
+                    console.error('Error in session callback:', error)
+                }
             }
             return session
         },
+        async jwt({ token, user, account, profile }) {
+            if (user) {
+                token.id = user.id
+                token.email = user.email
+                // Store the actual provider used for this session
+                token.provider = account?.provider || 'email'
+            }
+            return token
+        }
     }
 })
