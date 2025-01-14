@@ -109,6 +109,3 @@ Ask me at [fred@growvy.app](mailto:fred@growvy.app)
 ## Author
 
 Frederic Trivett
-
-
-oups
