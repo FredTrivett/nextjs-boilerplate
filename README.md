@@ -109,3 +109,12 @@ Ask me at [fred@growvy.app](mailto:fred@growvy.app)
 ## Author
 
 Frederic Trivett
+
+TO DO:
+1/ When login with google make it so that the same user can login with email as it works the other way arround (a user logged in with email can then after login with google)
+2/ A user should be able to change their name
+3/ A user can set their name in the onboarding when login in with email, but not google as google already gives the name
+4/ Only take the first name on the login with google
+5/ A user should be able to can change their email
+6/ Add PostHog stats to the app
+7/ Add stripe
